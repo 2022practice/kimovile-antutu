@@ -9,14 +9,20 @@ def get_mobile_url(mobile_model: str) -> str:
 
 def get_antutu_score(resp_html: requests_html.HTML,
         antutu_score_sel: str = K.ANTUTU_SCORE_SEL ) -> int:
-    antutu_score_text = resp_html.find(antutu_score_sel, first=True).text
+    antutu_score_text = resp_html.find(antutu_score_sel, first=True).text 
     antutu_score = antutu_score_text.replace('.', '')
-    return int(antutu_score)
+    try:
+        return int(antutu_score)
+    except ValueError:
+        return None
 
 
 def get_antutu_version(resp_html: requests_html.HTML,
         antutu_version_sel: str = K.ANTUTU_VERSION_SEL ) -> str:
-    return resp_html.find(antutu_version_sel, first=True).text
+    antutu_version = resp_html.find(antutu_version_sel, first=True).text
+    if not antutu_version:
+        return None
+    return antutu_version
 
 
 def get_antutu(mobile_model: str,
@@ -24,7 +30,10 @@ def get_antutu(mobile_model: str,
         score_sel: str = K.ANTUTU_SCORE_SEL,
         ses: requests_html.HTMLSession = requests_html.HTMLSession()) -> int:
     mobile_url = get_mobile_url(mobile_model)
-    resp_html = ses.get(mobile_url).html
+    resp = ses.get(mobile_url)
+    if resp.reason != 'OK':
+        return None
+    resp_html = resp.html
     version = get_antutu_version(resp_html, version_sel)
     score = get_antutu_score(resp_html, score_sel)
     antutu = { 'version': version, 'score': score}
