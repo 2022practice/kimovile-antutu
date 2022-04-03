@@ -1,8 +1,13 @@
 import requests_html
 import K
 
+
+def get_mobile_model_normalized(mobile_model: str) -> str:
+     return mobile_model.lower().replace(' ','-')
+
+
 def get_mobile_url(mobile_model: str) -> str:
-    mobile_model_normalized = mobile_model.lower().replace(' ','-')
+    mobile_model_normalized = get_mobile_model_normalized(mobile_model)
     mobile_url = K.URL_TEMPLATE.format(mobile_model_normalized)
     return mobile_url
 
@@ -25,12 +30,18 @@ def get_antutu_version(resp_html: requests_html.HTML,
     return antutu_version
 
 
+def get_mobile_model_resp(mobile_model: str,
+        ses: requests_html.HTMLSession = requests_html.HTMLSession(),
+        ) -> requests_html.HTMLResponse:
+    mobile_url = get_mobile_url(mobile_model)
+    return ses.get(mobile_url)
+
+
 def get_antutu(mobile_model: str,
         version_sel: str = K.ANTUTU_VERSION_SEL,
         score_sel: str = K.ANTUTU_SCORE_SEL,
         ses: requests_html.HTMLSession = requests_html.HTMLSession()) -> int:
-    mobile_url = get_mobile_url(mobile_model)
-    resp = ses.get(mobile_url)
+    resp = get_mobile_model_resp(mobile_model)
     if resp.reason != 'OK':
         return None
     resp_html = resp.html
@@ -42,4 +53,5 @@ def get_antutu(mobile_model: str,
 
 if __name__ == '__main__':
     ses = requests_html.HTMLSession()
-    antutu = get_antutu('Samsung Galaxy A71')
+    sample_mobile_model = 'Samsung Galaxy A71' 
+    antutu = get_antutu(sample_mobile_model)
